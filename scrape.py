@@ -11,7 +11,6 @@ def extract_article_content(page):
     return title, full_text
 
 def run(output_filename):
-    # 建立已存在的 URL set（避免重複抓）
     existing_urls = set()
     if os.path.exists(output_filename):
         with open(output_filename, "r", encoding="utf-8-sig") as f:
@@ -60,7 +59,7 @@ def run(output_filename):
 
             print(f"🔍 正在處理第 {idx+1}/{len(article_urls)} 篇: {url}")
             try:
-                page.goto(url)
+                page.goto(url, timeout=60000)
                 title, text = extract_article_content(page)
                 category = article_category_map.get(url, "未知分類")
                 results.append({
@@ -75,9 +74,12 @@ def run(output_filename):
 
         browser.close()
 
-        # 若有新資料，附加寫入 CSV
+        # 若有新資料，附加寫入
         if results:
-            os.makedirs(os.path.dirname(output_filename), exist_ok=True)
+            dir_name = os.path.dirname(output_filename)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
+
             file_exists = os.path.exists(output_filename)
             with open(output_filename, "a", newline="", encoding="utf-8-sig") as f:
                 writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
@@ -88,16 +90,18 @@ def run(output_filename):
 
             print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
         else:
-            # 📭 沒有新資料，但仍確保檔案存在（為 Flask 傳檔）
+            # 即使沒新資料也要建立空檔
+            dir_name = os.path.dirname(output_filename)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
             if not os.path.exists(output_filename):
-                os.makedirs(os.path.dirname(output_filename), exist_ok=True)
                 with open(output_filename, "w", newline="", encoding="utf-8-sig") as f:
                     writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
                     writer.writeheader()
             print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
 
-
-# 執行點
 if __name__ == "__main__":
-    output_file = "slack_articles_with_category.csv"
+    output_dir = "output"
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, "slack_articles_with_category.csv")
     run(output_file)
