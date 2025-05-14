@@ -1,8 +1,14 @@
 import csv
 import os
 import time
+import re
 import sys
 from playwright.sync_api import sync_playwright
+
+def clean_text(text):
+    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+    text = re.sub(' +', ' ', text)  # 移除多餘空格
+    return text.strip()
 
 def extract_article_content(page):
     title = page.title().strip()
@@ -62,9 +68,10 @@ def run(output_filename):
                 page.goto(url, timeout=60000)
                 title, text = extract_article_content(page)
                 category = article_category_map.get(url, "未知分類")
+
                 results.append({
-                    "Title": title,
-                    "Text": text,
+                    "Title": clean_text(title),
+                    "Text": clean_text(text),
                     "Category": category,
                     "URL": url
                 })
@@ -94,10 +101,17 @@ def run(output_filename):
             dir_name = os.path.dirname(output_filename)
             if dir_name:
                 os.makedirs(dir_name, exist_ok=True)
-            if not os.path.exists(output_filename):
-                with open(output_filename, "w", newline="", encoding="utf-8-sig") as f:
-                    writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
-                    writer.writeheader()
+
+            with open(output_filename, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
+                writer.writeheader()
+                writer.writerow({
+                    "Title": 1,
+                    "Text": 1,
+                    "Category": 1,
+                    "URL": 1
+                })
+
             print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
 
 if __name__ == "__main__":
