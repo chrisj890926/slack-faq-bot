@@ -5,12 +5,10 @@ import re
 import sys
 from playwright.sync_api import sync_playwright
 
-def clean_text_safe(text):
-    if not isinstance(text, str):
-        text = str(text)
-    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ").replace('"', "'")
-    text = re.sub(r"[\x00-\x1F]+", "", text)  # 移除不可見控制字元
-    return re.sub(' +', ' ', text).strip()
+def clean_text(text):
+    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+    text = re.sub(' +', ' ', text)  # 移除多餘空格
+    return text.strip()
 
 def extract_article_content(page):
     title = page.title().strip()
