@@ -6,8 +6,14 @@ import sys
 from playwright.sync_api import sync_playwright
 
 def clean_text(text):
-    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
-    text = re.sub(' +', ' ', text)  # 移除多餘空格
+    if not isinstance(text, str):
+        text = str(text)
+    # 移除換行、制表符、回車
+    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ").replace('"', "'")
+    # 移除所有 ASCII 控制字元（0x00 - 0x1F）
+    text = re.sub(r"[\x00-\x1F\x7F]+", " ", text)
+    # 移除多餘空格
+    text = re.sub(r" +", " ", text)
     return text.strip()
 
 def extract_article_content(page):
