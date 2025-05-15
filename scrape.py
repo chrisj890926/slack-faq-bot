@@ -72,7 +72,7 @@ def run(output_filename):
                 results.append({
                     "Title": clean_text(title),
                     "Text": clean_text(text),
-                    "Category": category,
+                    "Category": clean_text(category),
                     "URL": url
                 })
             except Exception as e:
