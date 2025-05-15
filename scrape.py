@@ -67,6 +67,9 @@ def run(output_filename):
             try:
                 page.goto(url, timeout=60000)
                 title, text = extract_article_content(page)
+                # 測試用：讓第 3 篇文章假裝更新
+                if idx == 2:
+                   text += " [模擬更新]"
                 category = article_category_map.get(url, "未知分類")
 
                 results.append({
@@ -83,36 +86,45 @@ def run(output_filename):
 
         # 若有新資料，附加寫入
         if results:
+            # 有新增或更新資料 → 要重建整份 CSV
             dir_name = os.path.dirname(output_filename)
             if dir_name:
                 os.makedirs(dir_name, exist_ok=True)
 
-            file_exists = os.path.exists(output_filename)
-            with open(output_filename, "a", newline="", encoding="utf-8-sig") as f:
-                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
-                if not file_exists or not existing_urls:
-                    writer.writeheader()
-                for row in results:
-                    writer.writerow(row)
+            # 先讀取舊資料並整合
+            existing_data = {}
+            if os.path.exists(output_filename):
+                with open(output_filename, "r", encoding="utf-8-sig") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        existing_data[row["URL"]] = row
 
-            print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
-        else:
-            # 即使沒新資料也要建立空檔
-            dir_name = os.path.dirname(output_filename)
-            if dir_name:
-                os.makedirs(dir_name, exist_ok=True)
+            # 更新或新增進 existing_data
+            for row in results:
+                existing_data[row["URL"]] = row
 
+            # 寫入整份整合後的新資料
             with open(output_filename, "w", newline="", encoding="utf-8-sig") as f:
                 writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
                 writer.writeheader()
-                writer.writerow({
-                    "Title": 1,
-                    "Text": 1,
-                    "Category": 1,
-                    "URL": 1
-                })
+                for row in existing_data.values():
+                    writer.writerow(row)
 
-            print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
+            print(f"\n新增或更新 {len(results)} 筆文章，已寫入 {output_filename}")
+
+            # 回傳完整資料
+            return list(existing_data.values())
+
+        else:
+            # 沒有新增或更新 → 回傳固定假資料
+            print("\n📭 沒有需要新增的文章，回傳假資料以供流程繼續")
+            return [{
+                "Title": 1,
+                "Text": 1,
+                "Category": 1,
+                "URL": 1
+            }]
+
 
 if __name__ == "__main__":
     output_dir = "output"
