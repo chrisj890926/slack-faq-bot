@@ -66,8 +66,12 @@ def run(output_filename):
             try:
                 page.goto(url, timeout=60000)
                 title, text = extract_article_content(page)
+                # 測試
+                if idx == 0:
+                    title += "（測試更新）"
+                
                 category = article_category_map.get(url, "未知分類")
-
+                
                 new_row = {
                     "Title": clean_text_safe(title),
                     "Text": clean_text_safe(text),
@@ -82,7 +86,7 @@ def run(output_filename):
             except Exception as e:
                 print(f"⚠️ 發生錯誤：{e}")
                 continue
-
+        
         browser.close()
 
     # 寫入整份資料
