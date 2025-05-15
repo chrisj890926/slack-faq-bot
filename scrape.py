@@ -5,16 +5,26 @@ import re
 import sys
 from playwright.sync_api import sync_playwright
 
-def clean_text(text):
+'''def clean_text(text):
+    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+    text = re.sub(' +', ' ', text)  # 移除多餘空格
+    return text.strip()'''
+
+def clean_text_safe(text):
     if not isinstance(text, str):
         text = str(text)
-    # 移除換行、制表符、回車
     text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ").replace('"', "'")
-    # 移除所有 ASCII 控制字元（0x00 - 0x1F）
-    text = re.sub(r"[\x00-\x1F\x7F]+", " ", text)
-    # 移除多餘空格
+    text = re.sub(r"[\x00-\x1F\x7F]+", " ", text)  # 移除所有控制字元
     text = re.sub(r" +", " ", text)
     return text.strip()
+
+def clean_row(row):
+    return {
+        "Title": clean_text_safe(row["Title"]),
+        "Text": clean_text_safe(row["Text"]),
+        "Category": clean_text_safe(row["Category"]),
+        "URL": clean_text_safe(row["URL"])
+    }
 
 def extract_article_content(page):
     title = page.title().strip()
@@ -76,10 +86,10 @@ def run(output_filename):
                 category = article_category_map.get(url, "未知分類")
 
                 results.append({
-                    "Title": clean_text(title),
-                    "Text": clean_text(text),
-                    "Category": clean_text(category),
-                    "URL": clean_text(url)
+                    "Title": clean_text_safe(title),
+                    "Text": clean_text_safe(text),
+                    "Category": clean_text_safe(category),
+                    "URL": url
                 })
             except Exception as e:
                 print(f"⚠️ 發生錯誤：{e}")
@@ -89,12 +99,11 @@ def run(output_filename):
 
         # 若有新資料，附加寫入
         if results:
-            # 有新增或更新資料 → 要重建整份 CSV
+            # 有新資料 → 重建整份 CSV 並整合舊資料
             dir_name = os.path.dirname(output_filename)
             if dir_name:
                 os.makedirs(dir_name, exist_ok=True)
 
-            # 先讀取舊資料並整合
             existing_data = {}
             if os.path.exists(output_filename):
                 with open(output_filename, "r", encoding="utf-8-sig") as f:
@@ -102,25 +111,39 @@ def run(output_filename):
                     for row in reader:
                         existing_data[row["URL"]] = row
 
-            # 更新或新增進 existing_data
+            # 更新或新增
             for row in results:
                 existing_data[row["URL"]] = row
 
-            # 寫入整份整合後的新資料
             with open(output_filename, "w", newline="", encoding="utf-8-sig") as f:
                 writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
                 writer.writeheader()
                 for row in existing_data.values():
                     writer.writerow(row)
 
-            print(f"\n新增或更新 {len(results)} 筆文章，已寫入 {output_filename}")
+            print(f"\n✅ 新增或更新 {len(results)} 筆文章，已寫入 {output_filename}")
 
-            # 回傳完整資料
-            return list(existing_data.values())
+            # ✅ 回傳完整資料（已清理）
+            return [clean_row(r) for r in existing_data.values()]
 
         else:
-            # 沒有新增或更新 → 回傳固定假資料
-            print("\n📭 沒有需要新增的文章，回傳假資料以供流程繼續")
+            # 沒新資料 → 寫一筆假資料
+            dir_name = os.path.dirname(output_filename)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
+
+            with open(output_filename, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
+                writer.writeheader()
+                writer.writerow({
+                    "Title": 1,
+                    "Text": 1,
+                    "Category": 1,
+                    "URL": 1
+                })
+
+            print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
+
             return [{
                 "Title": 1,
                 "Text": 1,
