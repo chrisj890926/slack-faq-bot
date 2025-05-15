@@ -73,7 +73,7 @@ def run(output_filename):
                     "Title": clean_text(title),
                     "Text": clean_text(text),
                     "Category": clean_text(category),
-                    "URL": url
+                    "URL": clean_text(url)
                 })
             except Exception as e:
                 print(f"⚠️ 發生錯誤：{e}")
