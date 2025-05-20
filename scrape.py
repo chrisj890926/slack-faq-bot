@@ -68,6 +68,9 @@ def run(output_filename):
                 page.goto(url, timeout=60000)
                 title, text = extract_article_content(page)
                 category = article_category_map.get(url, "未知分類")
+                # 測試用
+                if idx == 0:
+                    title += " 測試改"
 
                 results.append({
                     "Title": clean_text(title),
