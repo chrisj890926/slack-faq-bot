@@ -93,8 +93,9 @@ def run(output_filename):
             file_exists = os.path.exists(output_filename)
             with open(output_filename, "a", newline="", encoding="utf-8-sig") as f:
                 writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
-                if not file_exists or not existing_urls:
-                    writer.writeheader()
+                
+                # 移除這行：writer.writeheader()
+                
                 for row in results:
                     writer.writerow(row)
 
@@ -106,7 +107,7 @@ def run(output_filename):
                 os.makedirs(dir_name, exist_ok=True)
 
             with open(output_filename, "w", newline="", encoding="utf-8-sig") as f:
-                # writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
+                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
                 writer.writeheader()
                 writer.writerow({
                     "Title": 1,
