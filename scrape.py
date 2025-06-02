@@ -3,6 +3,7 @@ import os
 import time
 import re
 import sys
+import json
 from playwright.sync_api import sync_playwright
 
 def clean_text(text):
@@ -86,16 +87,19 @@ def run(output_filename):
 
         # 若有新資料，附加寫入
         if results:
+            # 將 results 轉為 JSON 格式
+            json_data = json.dumps(results, ensure_ascii=False, indent=2)
+            print(json_data)  # 你也可以先印出來看看結果
+
             dir_name = os.path.dirname(output_filename)
             if dir_name:
                 os.makedirs(dir_name, exist_ok=True)
 
             file_exists = os.path.exists(output_filename)
-            with open(output_filename, "a", newline="", encoding="utf-8-sig") as f:
+            with open(output_filename, "a", newline="", encoding="utf-8-sig") as f: 
                 writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
-                
-                # 移除這行：writer.writeheader()
-                
+                if not file_exists or not existing_urls:
+                    writer.writeheader()
                 for row in results:
                     writer.writerow(row)
 
