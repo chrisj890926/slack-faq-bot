@@ -106,7 +106,7 @@ def run(output_filename):
                 os.makedirs(dir_name, exist_ok=True)
 
             with open(output_filename, "w", newline="", encoding="utf-8-sig") as f:
-                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
+                # writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
                 writer.writeheader()
                 writer.writerow({
                     "Title": 1,
