@@ -71,7 +71,7 @@ def run(output_filename):
                 category = article_category_map.get(url, "未知分類")
                 # 測試用
                 if idx == 0:
-                    title += " 測試改2"
+                    title += " 測試改1"
 
                 results.append({
                     "Title": clean_text(title),
