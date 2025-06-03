@@ -5,6 +5,8 @@ import re
 import sys
 import json
 from playwright.sync_api import sync_playwright
+from datetime import datetime
+
 
 def clean_text(text):
     text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
@@ -117,7 +119,7 @@ def run(output_filename):
                     "Title": 1,
                     "Text": 1,
                     "Category": 1,
-                    "URL": 1
+                    "URL": f"empty-{datetime.now().isoformat()}"
                 })
 
             print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
