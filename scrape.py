@@ -108,6 +108,26 @@ def run(output_filename):
             print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
         else:
             # 即使沒新資料也要建立空檔
+            # 產生新的檔案名稱
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            empty_filename = os.path.join(output_dir, f"empty_{timestamp}.csv")
+
+            # 建立資料夾（如果不存在）
+            dir_name = os.path.dirname(empty_filename)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
+
+            # 寫入「空資料檔案」，不會覆蓋原本檔案
+            with open(empty_filename, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
+                writer.writeheader()
+                writer.writerow({
+                    "Title": 1,
+                    "Text": 1,
+                    "Category": 1,
+                    "URL": f"empty-{datetime.now().isoformat()}"
+                })
+            '''
             dir_name = os.path.dirname(output_filename)
             if dir_name:
                 os.makedirs(dir_name, exist_ok=True)
@@ -122,6 +142,7 @@ def run(output_filename):
                     "URL": f"empty-{datetime.now().isoformat()}"
                 })
 
+            '''
             print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
 
 if __name__ == "__main__":
