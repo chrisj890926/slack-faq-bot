@@ -106,6 +106,7 @@ def run(output_filename):
                     writer.writerow(row)
 
             print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
+            return output_filename
         else:
             # 即使沒新資料也要建立空檔
             # 產生新的檔案名稱
@@ -127,6 +128,7 @@ def run(output_filename):
                     "Category": 1,
                     "URL": f"empty-{datetime.now().isoformat()}"
                 })
+            return empty_filename
             '''
             dir_name = os.path.dirname(output_filename)
             if dir_name:
@@ -148,5 +150,6 @@ def run(output_filename):
 if __name__ == "__main__":
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
+    
     output_file = os.path.join(output_dir, "slack_articles_with_category.csv")
-    run(output_file)
+    result_file = run(output_file)
