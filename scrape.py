@@ -107,6 +107,7 @@ def run(output_filename):
             print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
         else:
             # 即使沒新資料也要建立空檔
+            '''
             # 產生新的檔案名稱
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             empty_filename = os.path.join(output_dir, f"empty_{timestamp}.csv")
@@ -141,7 +142,7 @@ def run(output_filename):
                     "URL": f"empty-{datetime.now().isoformat()}"
                 })
 
-            '''
+            
             print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
 
 if __name__ == "__main__":
