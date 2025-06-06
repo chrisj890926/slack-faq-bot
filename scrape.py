@@ -105,6 +105,7 @@ def run(output_filename):
                     writer.writerow(row)
 
             print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
+        '''
         else:
             # 即使沒新資料也要建立空檔
             '''
@@ -144,7 +145,7 @@ def run(output_filename):
 
             
             print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
-
+        '''
 if __name__ == "__main__":
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
