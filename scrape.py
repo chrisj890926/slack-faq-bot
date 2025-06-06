@@ -108,7 +108,7 @@ def run(output_filename):
         '''
         else:
             # 即使沒新資料也要建立空檔
-            '''
+            
             # 產生新的檔案名稱
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             empty_filename = os.path.join(output_dir, f"empty_{timestamp}.csv")
@@ -128,7 +128,8 @@ def run(output_filename):
                     "Category": 1,
                     "URL": f"empty-{datetime.now().isoformat()}"
                 })
-            '''
+            
+                
             dir_name = os.path.dirname(output_filename)
             if dir_name:
                 os.makedirs(dir_name, exist_ok=True)
@@ -145,6 +146,8 @@ def run(output_filename):
 
             
             print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
+            
+            
         '''
 if __name__ == "__main__":
     output_dir = "output"
