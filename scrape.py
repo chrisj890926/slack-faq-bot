@@ -87,20 +87,9 @@ def run(output_filename):
 
         browser.close()
 
-        dir_name = os.path.dirname(output_filename)
-        if dir_name:
-            os.makedirs(dir_name, exist_ok=True)
+        
 
-        with open(output_filename, "w", encoding="utf-8-sig") as f:
-            f.write("Title$Text$Category$URL\n")
-            if results:
-                for row in results:
-                    def clean(val): return str(val).replace("$", "＄")
-                    line = f"{clean(row['Title'])}${clean(row['Text'])}${clean(row['Category'])}${row['URL']}\n"
-                    f.write(line)
-                print(f"✅ 寫入 {len(results)} 筆資料")
-
-        '''
+        
         # 若有新資料，附加寫入
         if results:
             # 將 results 轉為 JSON 格式
@@ -121,7 +110,7 @@ def run(output_filename):
                     line = f"{clean(row['Title'])}${clean(row['Text'])}${clean(row['Category'])}${row['URL']}\n"
                     f.write(line)
             '''
-        '''
+        
             with open(output_filename, "a", newline="", encoding="utf-8-sig") as f: 
                 writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"], delimiter='$')
                 if not file_exists or not existing_urls:
