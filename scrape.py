@@ -1,13 +1,15 @@
+import csv
 import os
-import re
 import time
+import re
+import sys
 import json
-from datetime import datetime
 from playwright.sync_api import sync_playwright
+from datetime import datetime
 
 def clean_text(text):
     text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
-    text = re.sub(' +', ' ', text)
+    text = re.sub(' +', ' ', text)  # 移除多餘空格
     return text.strip()
 
 def extract_article_content(page):
@@ -17,8 +19,17 @@ def extract_article_content(page):
     return title, full_text
 
 def run(output_filename):
-    print("📂 將從零開始爬資料，覆蓋舊檔案")
-    
+    existing_urls = set()
+    '''
+    if os.path.exists(output_filename):
+        with open(output_filename, "r", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                existing_urls.add(row["URL"])
+        print(f"🧠 已爬過 {len(existing_urls)} 篇文章，將跳過這些 URL")
+    else:
+        print("🆕 沒有既有 CSV，將從零開始爬")
+    '''
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
@@ -26,11 +37,10 @@ def run(output_filename):
         BASE_URL = "https://slack.com/intl/zh-tw/help"
         page.goto(BASE_URL)
 
-        category_links = list(set(
-            page.locator("a[href*='/help/categories/']").evaluate_all(
-                "links => Array.from(links, a => a.href)"
-            )
-        ))
+        category_links = page.locator("a[href*='/help/categories/']").evaluate_all(
+            "links => Array.from(links, a => a.href)"
+        )
+        category_links = list(set(category_links))
         print(f"✅ 發現 {len(category_links)} 個分類")
 
         article_urls = []
@@ -52,11 +62,19 @@ def run(output_filename):
         results = []
 
         for idx, url in enumerate(article_urls):
+            if url in existing_urls:
+                print(f"⏩ 跳過已爬過文章 ({idx+1}/{len(article_urls)}): {url}")
+                continue
+
             print(f"🔍 正在處理第 {idx+1}/{len(article_urls)} 篇: {url}")
             try:
                 page.goto(url, timeout=60000)
                 title, text = extract_article_content(page)
                 category = article_category_map.get(url, "未知分類")
+                # 測試用
+                if idx == 0:
+                    title += " 測試改1"
+
                 results.append({
                     "Title": clean_text(title),
                     "Text": clean_text(text),
@@ -69,24 +87,83 @@ def run(output_filename):
 
         browser.close()
 
-        dir_name = os.path.dirname(output_filename)
-        if dir_name:
-            os.makedirs(dir_name, exist_ok=True)
+        # 若有新資料，附加寫入
+        if results:
+            # 將 results 轉為 JSON 格式
+            json_data = json.dumps(results, ensure_ascii=False, indent=2)
+            print(json_data)  # 你也可以先印出來看看結果
 
-        with open(output_filename, "w", encoding="utf-8-sig") as f:
-            f.write("Title$Text$Category$URL\n")
-            if results:
+            dir_name = os.path.dirname(output_filename)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
+
+            file_exists = os.path.exists(output_filename)
+            
+            with open(output_filename, "w", encoding="utf-8-sig") as f:
+                f.write("Title$Text$Category$URL\n")  # 手動寫入標題列
                 for row in results:
-                    def clean(val): return str(val).replace("$", "＄")
+                    def clean(val):
+                        return str(val).replace("$", "＄")  # 避免欄位中出現 $
                     line = f"{clean(row['Title'])}${clean(row['Text'])}${clean(row['Category'])}${row['URL']}\n"
                     f.write(line)
-                print(f"✅ 寫入 {len(results)} 筆資料")
-            else:
-                f.write(f"空資料$空資料$空資料$empty-{datetime.now().isoformat()}\n")
-                print("📭 無新資料，已建立空檔案")
+            '''
+            with open(output_filename, "a", newline="", encoding="utf-8-sig") as f: 
+                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"], delimiter='$')
+                if not file_exists or not existing_urls:
+                    writer.writeheader()
+                for row in results:
+                    writer.writerow(row)
+            '''
+            print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
+            
+            
+        '''
+        else:
+            # 即使沒新資料也要建立空檔
+            
+            # 產生新的檔案名稱
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            empty_filename = os.path.join(output_dir, f"empty_{timestamp}.csv")
 
+            # 建立資料夾（如果不存在）
+            dir_name = os.path.dirname(empty_filename)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
+
+            # 寫入「空資料檔案」，不會覆蓋原本檔案
+            with open(empty_filename, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
+                writer.writeheader()
+                writer.writerow({
+                    "Title": 1,
+                    "Text": 1,
+                    "Category": 1,
+                    "URL": f"empty-{datetime.now().isoformat()}"
+                })
+            
+                
+            dir_name = os.path.dirname(output_filename)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
+
+            with open(output_filename, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
+                writer.writeheader()
+                writer.writerow({
+                    "Title": 1,
+                    "Text": 1,
+                    "Category": 1,
+                    "URL": f"empty-{datetime.now().isoformat()}"
+                })
+
+            
+            print("\n📭 沒有需要新增的文章，但已建立空檔案以供回傳。")
+            
+            
+        '''
 if __name__ == "__main__":
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
+    
     output_file = os.path.join(output_dir, "slack_articles_with_category.txt")
     run(output_file)
