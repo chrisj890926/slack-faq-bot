@@ -97,6 +97,13 @@ def run(output_filename):
                 os.makedirs(dir_name, exist_ok=True)
 
             file_exists = os.path.exists(output_filename)
+            with open(output_filename, "a", encoding="utf-8-sig") as f:
+                if not file_exists or not existing_urls:
+                    f.write("Title:::Text:::Category:::URL\n")  # 寫入標題列
+                for row in results:
+                    line = f"{row['Title']}:::{row['Text']}:::{row['Category']}:::{row['URL']}\n"
+                    f.write(line)
+            '''
             with open(output_filename, "a", newline="", encoding="utf-8-sig") as f: 
                 writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
                 if not file_exists or not existing_urls:
@@ -105,6 +112,7 @@ def run(output_filename):
                     writer.writerow(row)
 
             print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
+            '''
         '''
         else:
             # 即使沒新資料也要建立空檔
@@ -154,6 +162,4 @@ if __name__ == "__main__":
     os.makedirs(output_dir, exist_ok=True)
     
     output_file = os.path.join(output_dir, "slack_articles_with_category.csv")
-   
-
     run(output_file)
