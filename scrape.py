@@ -164,5 +164,5 @@ if __name__ == "__main__":
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
     
-    output_file = os.path.join(output_dir, "slack_articles_with_category.csv")
+    output_file = os.path.join(output_dir, "slack_articles_with_category.txt")
     run(output_file)
