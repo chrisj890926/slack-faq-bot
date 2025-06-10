@@ -20,7 +20,7 @@ def extract_article_content(page):
 
 def run(output_filename):
     existing_urls = set()
-    '''
+    
     if os.path.exists(output_filename):
         with open(output_filename, "r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
@@ -29,7 +29,7 @@ def run(output_filename):
         print(f"🧠 已爬過 {len(existing_urls)} 篇文章，將跳過這些 URL")
     else:
         print("🆕 沒有既有 CSV，將從零開始爬")
-    '''
+    
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
