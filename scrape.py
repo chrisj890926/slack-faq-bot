@@ -20,6 +20,7 @@ def extract_article_content(page):
 
 def run(output_filename):
     existing_urls = set()
+    '''
     if os.path.exists(output_filename):
         with open(output_filename, "r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
@@ -28,7 +29,7 @@ def run(output_filename):
         print(f"🧠 已爬過 {len(existing_urls)} 篇文章，將跳過這些 URL")
     else:
         print("🆕 沒有既有 CSV，將從零開始爬")
-
+    '''
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
@@ -86,6 +87,20 @@ def run(output_filename):
 
         browser.close()
 
+        dir_name = os.path.dirname(output_filename)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
+
+        with open(output_filename, "w", encoding="utf-8-sig") as f:
+            f.write("Title$Text$Category$URL\n")
+            if results:
+                for row in results:
+                    def clean(val): return str(val).replace("$", "＄")
+                    line = f"{clean(row['Title'])}${clean(row['Text'])}${clean(row['Category'])}${row['URL']}\n"
+                    f.write(line)
+                print(f"✅ 寫入 {len(results)} 筆資料")
+
+        '''
         # 若有新資料，附加寫入
         if results:
             # 將 results 轉為 JSON 格式
@@ -106,6 +121,7 @@ def run(output_filename):
                     line = f"{clean(row['Title'])}${clean(row['Text'])}${clean(row['Category'])}${row['URL']}\n"
                     f.write(line)
             '''
+        '''
             with open(output_filename, "a", newline="", encoding="utf-8-sig") as f: 
                 writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"], delimiter='$')
                 if not file_exists or not existing_urls:
