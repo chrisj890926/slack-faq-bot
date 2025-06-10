@@ -97,7 +97,7 @@ def run(output_filename):
                 os.makedirs(dir_name, exist_ok=True)
 
             file_exists = os.path.exists(output_filename)
-            with open(output_filename, "a", encoding="utf-8-sig") as f:
+            with open(output_filename, "w", encoding="utf-8-sig") as f:
                 if not file_exists or not existing_urls:
                     f.write("Title:::Text:::Category:::URL\n")  # 寫入標題列
                 for row in results:
