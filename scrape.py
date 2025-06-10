@@ -106,7 +106,7 @@ def run(output_filename):
                     f.write(line)
             '''
             with open(output_filename, "a", newline="", encoding="utf-8-sig") as f: 
-                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"])
+                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"], delimiter='\t')
                 if not file_exists or not existing_urls:
                     writer.writeheader()
                 for row in results:
