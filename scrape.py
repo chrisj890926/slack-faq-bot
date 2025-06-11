@@ -23,9 +23,14 @@ def run(output_filename):
     
     if os.path.exists(output_filename):
         with open(output_filename, "r", encoding="utf-8-sig") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                existing_urls.add(row["URL"])
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("Title:::"):  # 跳過標題列
+                    continue
+                parts = line.split(":::")
+                if len(parts) == 4:
+                    _, _, _, url = parts
+                    existing_urls.add(url)
         print(f"🧠 已爬過 {len(existing_urls)} 篇文章，將跳過這些 URL")
     else:
         print("🆕 沒有既有 CSV，將從零開始爬")
