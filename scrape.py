@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 from datetime import datetime
 
 def clean_text(text):
-    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ").replace(",", "，")
     text = re.sub(' +', ' ', text)  # 移除多餘空格
     return text.strip()
 
@@ -107,13 +107,8 @@ def run(output_filename):
                     line = f"{clean(row['Title'])}${clean(row['Text'])}${clean(row['Category'])}${row['URL']}\n"
                     f.write(line)
             '''
-            with open(output_filename, "a", newline="", encoding="utf-8-sig") as f:
-                writer = csv.DictWriter(
-                    f,
-                    fieldnames=["Title", "Text", "Category", "URL"],
-                    delimiter=',',  # 用標準CSV逗號，避免不相容問題
-                    quoting=csv.QUOTE_ALL  # << 關鍵：自動為每格加雙引號
-                )
+            with open(output_filename, "a", newline="", encoding="utf-8-sig") as f: 
+                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"], delimiter='$')
                 if not file_exists or not existing_urls:
                     writer.writeheader()
                 for row in results:
