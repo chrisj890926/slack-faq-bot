@@ -23,14 +23,9 @@ def run(output_filename):
     
     if os.path.exists(output_filename):
         with open(output_filename, "r", encoding="utf-8-sig") as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith("Title:::"):  # 跳過標題列
-                    continue
-                parts = line.split(":::")
-                if len(parts) == 4:
-                    _, _, _, url = parts
-                    existing_urls.add(url)
+            reader = csv.DictReader(f)
+            for row in reader:
+                existing_urls.add(row["URL"])
         print(f"🧠 已爬過 {len(existing_urls)} 篇文章，將跳過這些 URL")
     else:
         print("🆕 沒有既有 CSV，將從零開始爬")
@@ -112,15 +107,17 @@ def run(output_filename):
                     line = f"{clean(row['Title'])}${clean(row['Text'])}${clean(row['Category'])}${row['URL']}\n"
                     f.write(line)
             '''
-            with open(output_filename, "a", encoding="utf-8-sig") as f:
+            with open(output_filename, "a", newline="", encoding="utf-8-sig") as f:
+                writer = csv.DictWriter(
+                    f,
+                    fieldnames=["Title", "Text", "Category", "URL"],
+                    delimiter=',',  # 用標準CSV逗號，避免不相容問題
+                    quoting=csv.QUOTE_ALL  # << 關鍵：自動為每格加雙引號
+                )
                 if not file_exists or not existing_urls:
-                    f.write("Title:::Text:::Category:::URL\n")
-
+                    writer.writeheader()
                 for row in results:
-                    def clean(val):
-                        return str(val).replace(":::", "：：：")
-                    line = f"{clean(row['Title'])}:::{clean(row['Text'])}:::{clean(row['Category'])}:::{row['URL']}\n"
-                    f.write(line)
+                    writer.writerow(row)
             
             print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
             
@@ -173,5 +170,5 @@ if __name__ == "__main__":
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
     
-    output_file = os.path.join(output_dir, "slack_articles_with_category.txt")
+    output_file = os.path.join(output_dir, "slack_articles_with_category.csv")
     run(output_file)
