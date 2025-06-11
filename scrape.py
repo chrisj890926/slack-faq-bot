@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 from datetime import datetime
 
 def clean_text(text):
-    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ").replace(",", "，")
+    text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ").replace(",", " ")
     text = re.sub(' +', ' ', text)  # 移除多餘空格
     return text.strip()
 
