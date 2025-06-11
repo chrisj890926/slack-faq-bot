@@ -107,12 +107,15 @@ def run(output_filename):
                     line = f"{clean(row['Title'])}${clean(row['Text'])}${clean(row['Category'])}${row['URL']}\n"
                     f.write(line)
             '''
-            with open(output_filename, "a", newline="", encoding="utf-8-sig") as f: 
-                writer = csv.DictWriter(f, fieldnames=["Title", "Text", "Category", "URL"], delimiter='$')
+            with open(output_filename, "a", encoding="utf-8-sig") as f:
                 if not file_exists or not existing_urls:
-                    writer.writeheader()
+                    f.write("Title:::Text:::Category:::URL\n")
+
                 for row in results:
-                    writer.writerow(row)
+                    def clean(val):
+                        return str(val).replace(":::", "：：：")
+                    line = f"{clean(row['Title'])}:::{clean(row['Text'])}:::{clean(row['Category'])}:::{row['URL']}\n"
+                    f.write(line)
             
             print(f"\n✅ 新增 {len(results)} 筆文章，已寫入 {output_filename}")
             
@@ -165,5 +168,5 @@ if __name__ == "__main__":
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
     
-    output_file = os.path.join(output_dir, "slack_articles_with_category.csv")
+    output_file = os.path.join(output_dir, "slack_articles_with_category.txt")
     run(output_file)
