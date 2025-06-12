@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 from datetime import datetime
 
 def clean_text(text):
-    text = text.replace(",", " ")
+    # text = text.replace(",", " ")
     text = text.replace("\n", " ").replace("\r", " ").replace("\t", " ")
     text = re.sub(' +', ' ', text)  # 移除多餘空格
     return text.strip()
@@ -77,7 +77,7 @@ def run(output_filename):
                     title += " 測試改1"
 
                 results.append({
-                    "Title": clean_text(title),
+                    "Title": clean_text(title).replace(",", " "),
                     "Text": clean_text(text),
                     "Category": clean_text(category),
                     "URL": url
